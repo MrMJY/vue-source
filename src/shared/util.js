@@ -175,6 +175,7 @@ export const capitalize = cached((str: string): string => {
 
 /**
  * Hyphenate a camelCase string.
+ * 匹配 驼峰命名 -> 连字符命名  eg: propName -> prop-name
  */
 const hyphenateRE = /\B([A-Z])/g
 export const hyphenate = cached((str: string): string => {

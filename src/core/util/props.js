@@ -25,31 +25,37 @@ export function validateProp (
   vm?: Component
 ): any {
   const prop = propOptions[key]
-  const absent = !hasOwn(propsData, key)
+  const absent = !hasOwn(propsData, key) // propsData 中是否存在 key 属性
   let value = propsData[key]
-  // boolean casting
-  const booleanIndex = getTypeIndex(Boolean, prop.type)
+  // boolean casting 布尔类型
+  const booleanIndex = getTypeIndex(Boolean, prop.type) // prop { type: Boolean 或者 type: [Number, Boolean] }
+  // 是布尔类型
   if (booleanIndex > -1) {
+    // 如果没有默认值并且 propsData 中没有 key 则默认值设置为 false
     if (absent && !hasOwn(prop, 'default')) {
       value = false
+      // 如果 value 为 '' 或者 value 和 key 一样
     } else if (value === '' || value === hyphenate(key)) {
       // only cast empty string / same name to boolean if
       // boolean has higher priority
+      // 如果布尔值具有更高的优先级，则仅将空字符串/相同的名称转换为布尔值
+      // eg: { type: [Boolean, String] } 这种情况 stringIndex: 1 booleanIndex: 0 满足条件 value -> true
+      // eg: { type: [String, Boolean] } 这种情况 stringIndex: 0 booleanIndex: 1 不满足条件
       const stringIndex = getTypeIndex(String, prop.type)
       if (stringIndex < 0 || booleanIndex < stringIndex) {
         value = true
       }
     }
   }
-  // check default value
+  // check default value 检查默认值
   if (value === undefined) {
     value = getPropDefaultValue(vm, prop, key)
     // since the default value is a fresh copy,
     // make sure to observe it.
     const prevShouldObserve = shouldObserve
-    toggleObserving(true)
+    toggleObserving(true) // 进行 observe 更新时，进行保护
     observe(value)
-    toggleObserving(prevShouldObserve)
+    toggleObserving(prevShouldObserve) //  更新完成时，打开保护
   }
   if (
     process.env.NODE_ENV !== 'production' &&

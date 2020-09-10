@@ -71,8 +71,15 @@ export function createPatchFunction (backend) {
   let i, j
   const cbs = {}
 
+  // nodeOps 是对 dom 原生操作的方法集合
   const { modules, nodeOps } = backend
 
+  // 给 cbs 添加钩子函数
+  // 最终会是
+  // cbs {
+  //  create: [create, create],
+  //  activate: [activate, activate]
+  // }
   for (i = 0; i < hooks.length; ++i) {
     cbs[hooks[i]] = []
     for (j = 0; j < modules.length; ++j) {
@@ -81,7 +88,7 @@ export function createPatchFunction (backend) {
       }
     }
   }
-
+  // 将 dom 转换成一个空的 vnode   没有 data、children、string
   function emptyNodeAt (elm) {
     return new VNode(nodeOps.tagName(elm).toLowerCase(), {}, [], undefined, elm)
   }
@@ -96,6 +103,7 @@ export function createPatchFunction (backend) {
     return remove
   }
 
+  // 找父元素，然后删除子元素
   function removeNode (el) {
     const parent = nodeOps.parentNode(el)
     // element may have already been removed due to v-html / v-text
@@ -122,6 +130,8 @@ export function createPatchFunction (backend) {
 
   let creatingElmInVPre = 0
 
+  // 根据 vnode 创建真实的 dom 并赋值给 vnode.elm 包括 children
+  // 将创建好的 dom 根据 parentElm,refElm 插入到正确的位置
   function createElm (
     vnode,
     insertedVnodeQueue,
@@ -140,7 +150,9 @@ export function createPatchFunction (backend) {
       vnode = ownerArray[index] = cloneVNode(vnode)
     }
 
+    // 是否是根节点
     vnode.isRootInsert = !nested // for transition enter check
+    // 尝试以组件形式创建
     if (createComponent(vnode, insertedVnodeQueue, parentElm, refElm)) {
       return
     }
@@ -162,7 +174,7 @@ export function createPatchFunction (backend) {
           )
         }
       }
-
+      // 创建一个空的 dom
       vnode.elm = vnode.ns
         ? nodeOps.createElementNS(vnode.ns, tag)
         : nodeOps.createElement(tag, vnode)
@@ -207,10 +219,12 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 创建组件
   function createComponent (vnode, insertedVnodeQueue, parentElm, refElm) {
     let i = vnode.data
     if (isDef(i)) {
       const isReactivated = isDef(vnode.componentInstance) && i.keepAlive
+      // 调用 vnode 中 hooks 的 init 方法
       if (isDef(i = i.hook) && isDef(i = i.init)) {
         i(vnode, false /* hydrating */)
       }
@@ -281,6 +295,8 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 遍历递归创建 children vnode
+  // 检查key
   function createChildren (vnode, children, insertedVnodeQueue) {
     if (Array.isArray(children)) {
       if (process.env.NODE_ENV !== 'production') {
@@ -473,6 +489,7 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 检查key是否有效，不能重复
   function checkDuplicateKeys (children) {
     const seenKeys = {}
     for (let i = 0; i < children.length; i++) {
@@ -573,6 +590,7 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 触发 insert 钩子
   function invokeInsertHook (vnode, queue, initial) {
     // delay insert hooks for component root nodes, invoke them after the
     // element is really inserted
@@ -720,10 +738,12 @@ export function createPatchFunction (backend) {
           // mounting to a real element
           // check if this is server-rendered content and if we can perform
           // a successful hydration.
+          // 用于服务端渲染
           if (oldVnode.nodeType === 1 && oldVnode.hasAttribute(SSR_ATTR)) {
             oldVnode.removeAttribute(SSR_ATTR)
             hydrating = true
           }
+          // 用于服务端渲染
           if (isTrue(hydrating)) {
             if (hydrate(oldVnode, vnode, insertedVnodeQueue)) {
               invokeInsertHook(vnode, insertedVnodeQueue, true)
@@ -740,6 +760,7 @@ export function createPatchFunction (backend) {
           }
           // either not server-rendered, or hydration failed.
           // create an empty node and replace it
+          // 将真实的 dom 转换成 vnode
           oldVnode = emptyNodeAt(oldVnode)
         }
 

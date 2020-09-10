@@ -9,16 +9,22 @@ import { query } from './util/index'
 import { compileToFunctions } from './compiler/index'
 import { shouldDecodeNewlines, shouldDecodeNewlinesForHref } from './util/compat'
 
+window.__WEEX__ = false
+
 const idToTemplate = cached(id => {
   const el = query(id)
   return el && el.innerHTML
 })
 
 const mount = Vue.prototype.$mount
+// 根据 el 或 template 编译创建 render 函数
+// 如果用户传入了 render 函数则直接使用，无需编译
+// 并通过 Vue.prototype.$mount 渲染
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
 ): Component {
+  // 获取 el 对应的 dom 节点
   el = el && query(el)
 
   /* istanbul ignore if */
@@ -62,6 +68,8 @@ Vue.prototype.$mount = function (
         mark('compile')
       }
 
+      // 函数柯里化
+      // 将 template -> render staticRenderFns
       const { render, staticRenderFns } = compileToFunctions(template, {
         outputSourceRange: process.env.NODE_ENV !== 'production',
         shouldDecodeNewlines,

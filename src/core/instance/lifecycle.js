@@ -29,6 +29,8 @@ export function setActiveInstance(vm: Component) {
   }
 }
 
+// 为 vm 初始化 $parent、$root、$children、$refs、_watcher、_inactive、_directInactive
+// _isMounted、_isDestroyed、_isBeingDestroyed 设置默认值
 export function initLifecycle (vm: Component) {
   const options = vm.$options
 
@@ -55,9 +57,11 @@ export function initLifecycle (vm: Component) {
   vm._isBeingDestroyed = false
 }
 
+// Vue.prototype._update、Vue.prototype.$forceUpdate、Vue.prototype.$destroy
 export function lifecycleMixin (Vue: Class<Component>) {
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
+    // 暂存 vm.$el、vm._vnode、vm
     const prevEl = vm.$el
     const prevVnode = vm._vnode
     const restoreActiveInstance = setActiveInstance(vm)
@@ -66,6 +70,8 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // based on the rendering backend used.
     if (!prevVnode) {
       // initial render
+      // 参数：oldVnode, vnode, hydrating, removeOnly
+      // 根据参数创建真实 dom 并插入到正确的位置，删除旧的 dom 节点，返回 vnode 对应的 dom 元素触发insert钩子
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
       // updates
@@ -138,6 +144,11 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 }
 
+// 为 vm 创建 $el(dom)
+// 创建根据 vnode 更新 dom 的 updateFunction 
+// 通过 watcher 监视数据，触发 updateFunction
+// 实现首次渲染
+// 触发 mounted 钩子
 export function mountComponent (
   vm: Component,
   el: ?Element,
@@ -186,6 +197,9 @@ export function mountComponent (
       measure(`vue ${name} patch`, startTag, endTag)
     }
   } else {
+    // vm._render()作用是通过 render 函数创建 vnode
+    // vm._update()作用是通过 vnode 创建真实的 dom
+    // updateComponent 函数实现了根据 vnode 操作 dom 
     updateComponent = () => {
       vm._update(vm._render(), hydrating)
     }
@@ -194,6 +208,8 @@ export function mountComponent (
   // we set this to vm._watcher inside the watcher's constructor
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
+  // watcher 监视数据更新后，调用 updateComponent 更新 dom 并触发钩子 beforeUpdate
+  // 第一次主动渲染，以后会 watcher 监视到有改变 update
   new Watcher(vm, updateComponent, noop, {
     before () {
       if (vm._isMounted && !vm._isDestroyed) {

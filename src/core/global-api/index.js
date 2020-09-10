@@ -18,6 +18,10 @@ import {
   defineReactive
 } from '../util/index'
 
+// 为 Vue 挂载静态方法和属性
+// 包括 config 对象、 util 工具函数对象、 set、delete、nextTick、observable 方法
+// options 对象 => { components: {}, directives: {}, filters: {}, _base: Vue }
+// 挂载 use、mixin、extend、component、directive、filter 方法
 export function initGlobalAPI (Vue: GlobalAPI) {
   // config
   const configDef = {}
@@ -46,7 +50,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   Vue.nextTick = nextTick
 
   // 2.6 explicit observable API
-  Vue.observable = <T>(obj: T): T => {
+  Vue.observable = function (obj: T) {
     observe(obj)
     return obj
   }

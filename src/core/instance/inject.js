@@ -4,6 +4,7 @@ import { hasOwn } from 'shared/util'
 import { warn, hasSymbol } from '../util/index'
 import { defineReactive, toggleObserving } from '../observer/index'
 
+// 根据 $options.provide 初始化 vm 上的 _provide 可以是 String、Number、Object、Array
 export function initProvide (vm: Component) {
   const provide = vm.$options.provide
   if (provide) {
@@ -13,6 +14,7 @@ export function initProvide (vm: Component) {
   }
 }
 
+// 将 Inject(注入) 的属性定义到 vm 上， 混入的概念
 export function initInjections (vm: Component) {
   const result = resolveInject(vm.$options.inject, vm)
   if (result) {
@@ -36,6 +38,7 @@ export function initInjections (vm: Component) {
   }
 }
 
+// 返回 Inject(注入) 的最终安全值
 export function resolveInject (inject: any, vm: Component): ?Object {
   if (inject) {
     // inject is :any because flow is not smart enough to figure out cached

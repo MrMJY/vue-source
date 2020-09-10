@@ -1,0 +1,193 @@
+﻿/* 主题切换样式 */
+
+.theme-primary-bg-color {
+  background-color: #35624a;
+}
+
+.theme-primary-txt-color {
+  color: #35624a;
+}
+
+.theme-primary-border-color {
+  border-color: #35624a;
+}
+
+/* ---------- 页面主框架布局样式 ---------- */
+
+/* 页头容器背景色、背景图 */
+.header-container {
+  background-color: #35624a;
+  background-image: url("static/custom-themes/green/images/header-stripe.png");
+}
+
+/* LOGO */
+.header-logo {
+  background: url("static/custom-themes/green/images/logo.png") no-repeat;
+}
+
+/* 页头系统导航按钮浮动色 */
+.header-systems .headerIcon.active, .header-systems .headerIcon:hover {
+  background-color: #269978;
+  border-color: #269978;
+}
+
+/* 用户名称显示 透明色 */
+.nav-icon .nav-name {
+  background-color: rgba(255,255,255,0)
+}
+
+/* 通知、预警、退出菜单浮动色 */
+.nav-icon>i:hover {
+  background-color: #269978;
+}
+
+/* 菜单栏展开折叠按钮浮动 */
+.hamburger-btn:hover {
+  background-color: #35624a;
+}
+
+/* 页脚容器背景 */
+.footer-container {
+  background-color: #2d4032;
+}
+
+
+
+/* ---------- 页面公共组件 - 页签 ---------- */
+
+/* 页签浮动色 */
+.tags-view-container .scroll-wrapper .tags-view-item:hover {
+  background-color: #e7f3d8;
+}
+
+/* 页签激活后字体色 */
+.tags-view-container .scroll-wrapper .tags-view-item.active {
+  color: #35624a;
+}
+
+/* 页签右键菜单浮动色 */
+.tags-view-container .contextmenu li:hover {
+  color: #fff;
+  background-color: #35624a;
+}
+
+/* ---------- 页面公共组件 - 菜单 ---------- */
+
+/* 一级菜单浮动色 */
+#app .sidebar-container .menu-wrapper:not(.nest-menu) > .el-submenu.is-opened > .el-submenu__title,
+#app .sidebar-container .el-menu-item.submenu-title-noDropdown:hover,
+#app .sidebar-container .el-submenu__title:hover {
+  background-color: #35624a;
+}
+
+#app .sidebar-container .el-menu-item.submenu-title-noDropdown.is-active {
+  background-color: #35624a;
+}
+
+/* 二级菜单选中图标颜色 */
+#app .sidebar-container .menu-wrapper > .el-submenu > .el-menu > .menu-wrapper .el-menu-item.is-active i:first-child {
+  color: #269978;
+}
+
+/* 暂不确定 */
+#app .sidebar-container .nest-menu .el-submenu.is-active .el-submenu__title i:first-child {
+  color: #269978;
+}
+
+#app .sidebar-container .nest-menu > .el-submenu > .el-menu > .menu-wrapper > a > .el-menu-item.is-active i:first-child {
+  color: #269978;
+}
+#app .sidebar-container .nest-menu > .el-submenu > .el-menu > .menu-wrapper > a > .el-menu-item.is-active {
+  color: #269978;
+}
+
+/* 三级菜单浮动色 */
+#app .sidebar-container .nest-menu > .el-submenu > .el-menu > .menu-wrapper > a > .el-menu-item:hover {
+  color: #54c1a2;
+}
+
+/* ---------- 页面公共组件 - 基础Panel组件 ---------- */
+
+/* 基础Panel、header图标、header标题、折叠按钮颜色 */
+.base-panel,
+.base-panel-header-icon,
+.base-panel-header-title,
+.collapseBtn {
+  color: #35624a;
+}
+
+/* 折叠按钮浮动色 */
+.collapseBtn:hover {
+  background-color: #35624a;
+}
+
+/* 详情页输入框后面的图标色 */
+.base-panel--details .el-input__suffix {
+  background-color: #35624a;
+}
+
+/* ---------- 页面公共组件 - 基础门户组件 ---------- */
+
+/* 门户头字色 */
+.gridItem-container .gridItemHeader {
+  color: #35624a;
+}
+
+/* 门户头部操作按钮浮动色 */
+.gridItem-container .gridItemHeader .headerOptions .wfBtn:hover {
+  background-color: #35624a;
+}
+
+/* 拖动门户时占位框边框 */
+.vue-grid-item.vue-grid-placeholder {
+  border: 2px dashed #35624a;
+}
+
+/* 门户管理按钮 */
+.manage-container {
+  background-color: #35624a;
+}
+
+/* 门户按钮展开后的多个按钮 */
+.more-btn div,
+.tabSup {
+  border-color: #35624a;
+  background-color: #35624a;
+}
+
+/* 门户管理弹窗内的组件图标 */
+.coms-container .icoButton {
+  color: #35624a;
+  border-color: #35624a;
+}
+
+/* 门户管理弹窗内的组件图标浮动色 */
+.coms-container .icoButton:hover {
+  background-color: #269978;
+  border-color: #269978;
+}
+
+/* 门户管理弹窗内的组件选中颜色 */
+.coms-container .icoButton .selected {
+  background-color: #35624a;
+  border-color: #35624a;
+}
+
+/* ---------- 其他页面 ---------- */
+
+/* 登录页 */
+.login {
+  background-image: url("static/custom-themes/green/images/login-bg.jpg");
+}
+
+/* 返回首页 */
+.wscn-http404 .bullshit__return-home {
+  color: #fff;
+  background: #35624a;
+}
+
+/* --------- ElementUI ------------*/
+.el-button--primary {
+  background-color: #2BF511;
+  border-color: #2BF511;
+}

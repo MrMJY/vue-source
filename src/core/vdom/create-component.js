@@ -109,9 +109,11 @@ export function createComponent (
     return
   }
 
+  // baseCtor === Vue
   const baseCtor = context.$options._base
 
   // plain options object: turn it into a constructor
+  // 普通配置对象转换为一个继承自 Vue 的子构造器
   if (isObject(Ctor)) {
     Ctor = baseCtor.extend(Ctor)
   }
@@ -205,6 +207,7 @@ export function createComponent (
   return vnode
 }
 
+// 根据 vnode 创建组件实例
 export function createComponentInstanceForVnode (
   vnode: any, // we know it's MountedComponentVNode but flow doesn't
   parent: any, // activeInstance in lifecycle state
@@ -223,6 +226,7 @@ export function createComponentInstanceForVnode (
   return new vnode.componentOptions.Ctor(options)
 }
 
+// 给组件注册一些钩子函数（init、prepatch、insert、destroy）
 function installComponentHooks (data: VNodeData) {
   const hooks = data.hook || (data.hook = {})
   for (let i = 0; i < hooksToMerge.length; i++) {

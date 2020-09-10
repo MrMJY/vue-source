@@ -12,6 +12,7 @@ import { extend, mergeOptions, formatComponentName } from '../util/index'
 
 let uid = 0
 
+// Vue.prototype._init
 export function initMixin (Vue: Class<Component>) {
   Vue.prototype._init = function (options?: Object) {
     const vm: Component = this
@@ -29,12 +30,14 @@ export function initMixin (Vue: Class<Component>) {
     // a flag to avoid this being observed
     vm._isVue = true
     // merge options
+    // 创建组件实例时，_isComponent = true
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
       initInternalComponent(vm, options)
     } else {
+      // 构造函数上的一些 options, 用户传入的 options 合并到 vm.$options 上
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor),
         options || {},
@@ -49,28 +52,39 @@ export function initMixin (Vue: Class<Component>) {
     }
     // expose real self
     vm._self = vm
+    // 为 vm 初始化 $parent、$root、$children、$refs、_watcher、_inactive、_directInactive
+    // _isMounted、_isDestroyed、_isBeingDestroyed 设置默认值
     initLifecycle(vm)
+    // 为 vm 初始化 _events、_hasHookEvent、对 vm 做一些事件的监听，添加，删除操作
     initEvents(vm)
+    // 为 vm 初始化 _vnode、_staticTrees、$slots、$scopedSlots、_c、$createElement、$attrs、$listeners
     initRender(vm)
     callHook(vm, 'beforeCreate')
+    // 将 $options 中的 inject(注入) 混入到 vm 上
     initInjections(vm) // resolve injections before data/props
+    // 为 vm 初始化 _watchers、_data、_props、watch、computed、methods
+    // 将 $options 中的 methods 代理到 vm 上并且绑定 this 为 vm
+    // 将 $options 中的 props 代理到 vm 上，以及在 vm 上挂载 _props
+    // 将 $options 中的 data 代理到 vm 上，以及在 vm 上挂载 _data
+    // 将 $options 中的每个 computed 创建 watcher 监视，并且挂在到 vm 上
+    // 将 $options 中的每个 watch 创建 watcher 监视
     initState(vm)
-    initProvide(vm) // resolve provide after data/props
+    // 将 $options 中的 provide 挂在到 vm._provide 上
+    initProvide(vm)
     callHook(vm, 'created')
-
     /* istanbul ignore if */
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
       vm._name = formatComponentName(vm, false)
       mark(endTag)
       measure(`vue ${vm._name} init`, startTag, endTag)
     }
-
+    // 开始渲染
     if (vm.$options.el) {
-      vm.$mount(vm.$options.el)
+      vm.$mount(vm.$options.el) // 渲染
     }
   }
 }
-
+// 初始化组件
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
@@ -91,7 +105,9 @@ export function initInternalComponent (vm: Component, options: InternalComponent
 }
 
 export function resolveConstructorOptions (Ctor: Class<Component>) {
+  // Ctor 构造器（构造函数- Vue ）
   let options = Ctor.options
+  // 如果是组件，那么构建组件的构造器 Sub 内会有 super 属性，指向 Vue
   if (Ctor.super) {
     const superOptions = resolveConstructorOptions(Ctor.super)
     const cachedSuperOptions = Ctor.superOptions

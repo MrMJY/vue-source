@@ -12,8 +12,8 @@ export const createCompiler = createCompilerCreator(function baseCompile (
   template: string,
   options: CompilerOptions
 ): CompiledResult {
-  const ast = parse(template.trim(), options)
-  if (options.optimize !== false) {
+  const ast = parse(template.trim(), options) // 编译 template
+  if (options.optimize !== false) { // 压缩
     optimize(ast, options)
   }
   const code = generate(ast, options)

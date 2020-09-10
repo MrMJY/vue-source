@@ -230,6 +230,8 @@ export default class Watcher {
       // remove self from vm's watcher list
       // this is a somewhat expensive operation so we skip it
       // if the vm is being destroyed.
+      // 从 vm 的观察者列表中删除这个 watcher，这是一项昂贵的操作
+      // 因此如果 vm 被销毁，我们将跳过它 vm 销毁则整个观察者列表清空自然销毁所有 watcher
       if (!this.vm._isBeingDestroyed) {
         remove(this.vm._watchers, this)
       }

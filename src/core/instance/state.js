@@ -35,6 +35,7 @@ const sharedPropertyDefinition = {
   set: noop
 }
 
+// 实现数据劫持代理
 export function proxy (target: Object, sourceKey: string, key: string) {
   sharedPropertyDefinition.get = function proxyGetter () {
     return this[sourceKey][key]
@@ -45,6 +46,7 @@ export function proxy (target: Object, sourceKey: string, key: string) {
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
+// 初始化 $options 中的 props、methods、data、computed、watch
 export function initState (vm: Component) {
   vm._watchers = []
   const opts = vm.$options
@@ -61,14 +63,16 @@ export function initState (vm: Component) {
   }
 }
 
+// 将 props 代理到 vm 上，vm 上添加 _props $options 上加入 propsKeys 数组 数据代理 使用观察者监视
 function initProps (vm: Component, propsOptions: Object) {
   const propsData = vm.$options.propsData || {}
   const props = vm._props = {}
   // cache prop keys so that future props updates can iterate using Array
   // instead of dynamic object key enumeration.
+  // 缓存 prop 的 key，以便将来的 props 更新可以使用Array而不是动态对象键枚举进行迭代
   const keys = vm.$options._propKeys = []
-  const isRoot = !vm.$parent
-  // root instance props should be converted
+  const isRoot = !vm.$parent // 根实例的 $parent 是 undefined
+  // root instance props should be converted 根实例的 props 应该被观察
   if (!isRoot) {
     toggleObserving(false)
   }
@@ -76,6 +80,7 @@ function initProps (vm: Component, propsOptions: Object) {
     keys.push(key)
     const value = validateProp(key, propsOptions, propsData, vm)
     /* istanbul ignore else */
+    // props 重复警告
     if (process.env.NODE_ENV !== 'production') {
       const hyphenatedKey = hyphenate(key)
       if (isReservedAttribute(hyphenatedKey) ||
@@ -97,11 +102,13 @@ function initProps (vm: Component, propsOptions: Object) {
         }
       })
     } else {
+      // 给 props 设置 key 设置 value 和 getter
       defineReactive(props, key, value)
     }
     // static props are already proxied on the component's prototype
     // during Vue.extend(). We only need to proxy props defined at
     // instantiation here.
+    // 数据代理 this._props.key => this.key
     if (!(key in vm)) {
       proxy(vm, `_props`, key)
     }
@@ -109,11 +116,13 @@ function initProps (vm: Component, propsOptions: Object) {
   toggleObserving(true)
 }
 
+// vm 上挂载 _data 数据代理 使用观察者监视
 function initData (vm: Component) {
   let data = vm.$options.data
   data = vm._data = typeof data === 'function'
-    ? getData(data, vm)
+    ? getData(data, vm) // 调用data()
     : data || {}
+  // data 必须是对象，不论是 data 直接是对象 还是 data() 都必须是对象
   if (!isPlainObject(data)) {
     data = {}
     process.env.NODE_ENV !== 'production' && warn(
@@ -129,6 +138,7 @@ function initData (vm: Component) {
   let i = keys.length
   while (i--) {
     const key = keys[i]
+    // data 中的属性不能跟 methods 中的相同
     if (process.env.NODE_ENV !== 'production') {
       if (methods && hasOwn(methods, key)) {
         warn(
@@ -137,35 +147,40 @@ function initData (vm: Component) {
         )
       }
     }
+    // data 中的属性不能跟 props 中的相同
     if (props && hasOwn(props, key)) {
       process.env.NODE_ENV !== 'production' && warn(
         `The data property "${key}" is already declared as a prop. ` +
         `Use prop default value instead.`,
         vm
       )
-    } else if (!isReserved(key)) {
-      proxy(vm, `_data`, key)
+    // data 不允许使用以 $ 或 _ 开头的字符串作为 key
+    } else if (!isReserved(key)) { // Check if a string starts with $ or _
+      proxy(vm, `_data`, key) // 数据代理 将 this._data.key => this.key
     }
   }
   // observe data
+  // 为每一个 data 数据创建 observer dep 观察者与订阅者 比较复杂
   observe(data, true /* asRootData */)
 }
 
+// 当 data 是函数时，获取返回值
 export function getData (data: Function, vm: Component): any {
   // #7573 disable dep collection when invoking data getters
-  pushTarget()
+  pushTarget() // watcher 入栈
   try {
     return data.call(vm, vm)
   } catch (e) {
     handleError(e, vm, `data()`)
     return {}
   } finally {
-    popTarget()
+    popTarget() // watcher 出栈
   }
 }
 
 const computedWatcherOptions = { lazy: true }
 
+// vm 上挂载 _computedWatchers    将 computed 中的所有 key 定义到 vm 实例上
 function initComputed (vm: Component, computed: Object) {
   // $flow-disable-line
   const watchers = vm._computedWatchers = Object.create(null)
@@ -174,6 +189,7 @@ function initComputed (vm: Component, computed: Object) {
 
   for (const key in computed) {
     const userDef = computed[key]
+    // 两种写法，一种是直接函数作为 getter 另一种是对象，编写 get 函数
     const getter = typeof userDef === 'function' ? userDef : userDef.get
     if (process.env.NODE_ENV !== 'production' && getter == null) {
       warn(
@@ -207,6 +223,7 @@ function initComputed (vm: Component, computed: Object) {
   }
 }
 
+// 将 copmuted 定义到 vm 上
 export function defineComputed (
   target: any,
   key: string,
@@ -238,6 +255,7 @@ export function defineComputed (
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
+// 创建有 watcher 的 computedGetter 函数
 function createComputedGetter (key) {
   return function computedGetter () {
     const watcher = this._computedWatchers && this._computedWatchers[key]
@@ -253,12 +271,14 @@ function createComputedGetter (key) {
   }
 }
 
+// 创建没有 watcher 的 computedGetter 函数（普通函数，没有监视）
 function createGetterInvoker(fn) {
   return function computedGetter () {
     return fn.call(this, this)
   }
 }
 
+// 将 methos 中的方法定义到 vm 上，绑定函数的 this 指向 vm
 function initMethods (vm: Component, methods: Object) {
   const props = vm.$options.props
   for (const key in methods) {
@@ -287,6 +307,7 @@ function initMethods (vm: Component, methods: Object) {
   }
 }
 
+// 通过 $watch 监视 $options.watch 内的属性
 function initWatch (vm: Component, watch: Object) {
   for (const key in watch) {
     const handler = watch[key]
@@ -300,6 +321,7 @@ function initWatch (vm: Component, watch: Object) {
   }
 }
 
+// 通过 $watch 监视 $options.watch 内的属性
 function createWatcher (
   vm: Component,
   expOrFn: string | Function,
@@ -342,16 +364,17 @@ export function stateMixin (Vue: Class<Component>) {
   Vue.prototype.$set = set
   Vue.prototype.$delete = del
 
+  // 对一个 vm 上的 property 监视，绑定一个用户传入的钩子，返回一个关闭监视的函数
   Vue.prototype.$watch = function (
     expOrFn: string | Function,
     cb: any,
     options?: Object
   ): Function {
     const vm: Component = this
-    if (isPlainObject(cb)) {
+    if (isPlainObject(cb)) { // 递归 watch { name: { handler: { handler } } } handler 嵌套
       return createWatcher(vm, expOrFn, cb, options)
     }
-    options = options || {}
+    options = options || {} // options { handler() {}, deep: true, immediate: true ... }
     options.user = true
     const watcher = new Watcher(vm, expOrFn, cb, options)
     if (options.immediate) {

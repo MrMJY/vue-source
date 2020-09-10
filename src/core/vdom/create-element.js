@@ -25,6 +25,7 @@ const ALWAYS_NORMALIZE = 2
 
 // wrapper function for providing a more flexible interface
 // without getting yelled at by flow
+// 对传入的参数进行容错处理
 export function createElement (
   context: Component,
   tag: any,
@@ -33,6 +34,7 @@ export function createElement (
   normalizationType: any,
   alwaysNormalize: boolean
 ): VNode | Array<VNode> {
+  // 判断是否是简单类型 以及 如果不传 data, 而是传了 children 时形参实参对应错误的问题
   if (Array.isArray(data) || isPrimitive(data)) {
     normalizationType = children
     children = data
@@ -44,6 +46,9 @@ export function createElement (
   return _createElement(context, tag, data, children, normalizationType)
 }
 
+// 根据 tag、data、children 创建 vnode children 会递归/递归一层 创建 vnode
+// 最后形成一个 vnode tree 用来形容真实的 dom
+// tag：标签、组件对象、函数
 export function _createElement (
   context: Component,
   tag?: string | Class<Component> | Function | Object,
@@ -51,7 +56,10 @@ export function _createElement (
   children?: any,
   normalizationType?: number
 ): VNode | Array<VNode> {
+  // data 有值 并且 data.__ob__ 也存在 警告
   if (isDef(data) && isDef((data: any).__ob__)) {
+    // 避免将观察到的数据对象用作vnode数据
+    // 始终在每个渲染中创建新的vnode数据对象
     process.env.NODE_ENV !== 'production' && warn(
       `Avoid using observed data object as vnode data: ${JSON.stringify(data)}\n` +
       'Always create fresh vnode data objects in each render!',
@@ -88,16 +96,21 @@ export function _createElement (
     children.length = 0
   }
   if (normalizationType === ALWAYS_NORMALIZE) {
+    // 返回的是 Vnode 数组
     children = normalizeChildren(children)
   } else if (normalizationType === SIMPLE_NORMALIZE) {
+    // 递归深度为 1，再嵌套的不再处理
     children = simpleNormalizeChildren(children)
   }
   let vnode, ns
+  // tag 是字符串 标签
   if (typeof tag === 'string') {
     let Ctor
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag)
+    // tag 是不是原生的 html 标签 或者 svg
     if (config.isReservedTag(tag)) {
       // platform built-in elements
+      // .native 属性只能用在 component 上，不能用在原生的 html 元素上
       if (process.env.NODE_ENV !== 'production' && isDef(data) && isDef(data.nativeOn)) {
         warn(
           `The .native modifier for v-on is only valid on components but it was used on <${tag}>.`,

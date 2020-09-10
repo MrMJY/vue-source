@@ -21,6 +21,7 @@ const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
 /**
  * In some cases we may want to disable observation inside a component's
  * update computation.
+ * 在某些情况下，我们可能希望禁用组件更新计算中的观察
  */
 export let shouldObserve: boolean = true
 
@@ -43,7 +44,7 @@ export class Observer {
     this.value = value
     this.dep = new Dep()
     this.vmCount = 0
-    def(value, '__ob__', this)
+    def(value, '__ob__', this) // 给 value 定义一个 __ob__ 的属性，值为 当前创建的 observer
     if (Array.isArray(value)) {
       if (hasProto) {
         protoAugment(value, arrayMethods)
@@ -103,11 +104,12 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
 }
 
 /**
- * Attempt to create an observer instance for a value,
- * returns the new observer if successfully observed,
- * or the existing observer if the value already has one.
+ * Attempt to create an observer instance for a value, 尝试为值创建观察者实例
+ * returns the new observer if successfully observed, 如果成功观察到，则返回新观察者
+ * or the existing observer if the value already has one. 或现有的观察者（如果值已包含一个）
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
+  // 如果 value 不是对象 或者 value 是 一个 VNode 实例
   if (!isObject(value) || value instanceof VNode) {
     return
   }
@@ -116,10 +118,10 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     ob = value.__ob__
   } else if (
     shouldObserve &&
-    !isServerRendering() &&
+    !isServerRendering() && // 非服务端渲染函数
     (Array.isArray(value) || isPlainObject(value)) &&
-    Object.isExtensible(value) &&
-    !value._isVue
+    Object.isExtensible(value) && // 可扩展
+    !value._isVue // 不是 vue 实例
   ) {
     ob = new Observer(value)
   }
@@ -141,7 +143,9 @@ export function defineReactive (
 ) {
   const dep = new Dep()
 
+  // 获取 obj 上 key 的描述信息(value, writable, get, set, configurable, enumerable)
   const property = Object.getOwnPropertyDescriptor(obj, key)
+  // 如果属性不可配置 直接返回
   if (property && property.configurable === false) {
     return
   }
@@ -149,11 +153,12 @@ export function defineReactive (
   // cater for pre-defined getter/setters
   const getter = property && property.get
   const setter = property && property.set
+  // 如果只传递了两个参数 即 obj and key 并且 !getter || setter
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key]
   }
 
-  let childOb = !shallow && observe(val)
+  let childOb = !shallow && observe(val) // 递归为 data 中的数据进行创建 setter 和 getter
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
