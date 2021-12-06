@@ -9,6 +9,16 @@
 <script>
 export default {
   name: 'HelloWorld',
+  model: {
+    prop: 'checked',
+    event: 'change'
+  },
+  props: {
+    checked: Boolean
+  },
+  data() {
+    return {}
+  }
 }
 </script>
 

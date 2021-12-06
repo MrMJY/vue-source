@@ -17,7 +17,7 @@ export default class Dep {
 
   constructor () {
     this.id = uid++
-    this.subs = []
+    this.subs = [] // 订阅者
   }
 
   addSub (sub: Watcher) {
@@ -52,14 +52,19 @@ export default class Dep {
 // The current target watcher being evaluated.
 // This is globally unique because only one watcher
 // can be evaluated at a time.
+
+// Dep.target 一直指向栈顶的 watcher
 Dep.target = null
+// 栈结构数组，后入先出
 const targetStack = []
 
+// 入栈
 export function pushTarget (target: ?Watcher) {
   targetStack.push(target)
   Dep.target = target
 }
 
+// 出栈时
 export function popTarget () {
   targetStack.pop()
   Dep.target = targetStack[targetStack.length - 1]

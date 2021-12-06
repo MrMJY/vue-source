@@ -12,5 +12,6 @@ Vue.use(ElementUI, { size: 'small' })
 Vue.config.productionTip = false
 
 new Vue({
+  // template: `<div id="app">Hello World</div>`
   render: h => h(App),
 }).$mount('#app')

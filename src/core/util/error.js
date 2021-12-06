@@ -33,6 +33,7 @@ export function handleError (err: Error, vm: any, info: string) {
   }
 }
 
+// 调用钩子函数并且绑定this为vm
 export function invokeWithErrorHandling (
   handler: Function,
   context: any,

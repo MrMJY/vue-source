@@ -25,6 +25,7 @@ import {
  * Option overwriting strategies are functions that handle
  * how to merge a parent option value and a child option
  * value into the final value.
+ * 选项覆盖策略是处理如何将父选项值和子选项值合并到最终值中的函数
  */
 const strats = config.optionMergeStrategies
 
@@ -45,6 +46,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 /**
  * Helper that recursively merges two data objects together.
+ * 递归合并两个对象
  */
 function mergeData (to: Object, from: ?Object): Object {
   if (!from) return to
@@ -57,6 +59,7 @@ function mergeData (to: Object, from: ?Object): Object {
   for (let i = 0; i < keys.length; i++) {
     key = keys[i]
     // in case the object is already observed...
+    // 忽略__ob__字段
     if (key === '__ob__') continue
     toVal = to[key]
     fromVal = from[key]
@@ -75,6 +78,7 @@ function mergeData (to: Object, from: ?Object): Object {
 
 /**
  * Data
+ * Data 的合并策略
  */
 export function mergeDataOrFn (
   parentVal: any,
@@ -142,6 +146,9 @@ strats.data = function (
 
 /**
  * Hooks and props are merged as arrays.
+ * ① 有child 有parent 两个合并concat
+ * ② 有child 无parent 使用数组包装child
+ * ③ 无child          返回parent
  */
 function mergeHook (
   parentVal: ?Array<Function>,
@@ -168,17 +175,19 @@ function dedupeHooks (hooks) {
   }
   return res
 }
-
+// 生命周期钩子函数合并策略
 LIFECYCLE_HOOKS.forEach(hook => {
   strats[hook] = mergeHook
 })
 
 /**
- * Assets
+ * Assets(components、directives、filters)
  *
  * When a vm is present (instance creation), we need to do
  * a three-way merge between constructor options, instance
  * options and parent options.
+ * 当存在一个vm(实例创建)时，我们需要在构造器选项、实例选项和父选项之间进行三种方式的合并。
+ * 合并child并且继承parent
  */
 function mergeAssets (
   parentVal: ?Object,
@@ -260,6 +269,7 @@ strats.provide = mergeDataOrFn
 
 /**
  * Default strategy.
+ * 默认策略，优先使用childVal
  */
 const defaultStrat = function (parentVal: any, childVal: any): any {
   return childVal === undefined
@@ -294,12 +304,14 @@ export function validateComponentName (name: string) {
 /**
  * Ensure all props option syntax are normalized into the
  * Object-based format.
+ * 确保所有Props选项语法都转化为基于对象的格式
  */
 function normalizeProps (options: Object, vm: ?Component) {
   const props = options.props
   if (!props) return
   const res = {}
   let i, val, name
+  // 数组写法，数组形式只能是字符串 props:['disabled', 'value']
   if (Array.isArray(props)) {
     i = props.length
     while (i--) {
@@ -311,13 +323,20 @@ function normalizeProps (options: Object, vm: ?Component) {
         warn('props must be strings when using array syntax.')
       }
     }
+  // 对象写法
+  /**
+   * props: {
+   *    disabled: { type: Number, default: 1 } ①
+   *    checked: Boolean ②
+   * }
+  */
   } else if (isPlainObject(props)) {
     for (const key in props) {
       val = props[key]
       name = camelize(key)
       res[name] = isPlainObject(val)
-        ? val
-        : { type: val }
+        ? val // ①
+        : { type: val } // ②
     }
   } else if (process.env.NODE_ENV !== 'production') {
     warn(
@@ -331,6 +350,7 @@ function normalizeProps (options: Object, vm: ?Component) {
 
 /**
  * Normalize all injections into Object-based format
+ * 将所有 inject 标准化为基于对象的格式
  */
 function normalizeInject (options: Object, vm: ?Component) {
   const inject = options.inject
@@ -358,6 +378,7 @@ function normalizeInject (options: Object, vm: ?Component) {
 
 /**
  * Normalize raw function directives into object format.
+ * 将函数指令标准化为对象格式
  */
 function normalizeDirectives (options: Object) {
   const dirs = options.directives
@@ -405,7 +426,9 @@ export function mergeOptions (
   // Apply extends and mixins on the child options,
   // but only if it is a raw options object that isn't
   // the result of another mergeOptions call.
+  // 在子选项上应用extends和MixIns，但仅当它是一个原始选项对象，这不是另一个mergeOptions的结果。
   // Only merged options has the _base property.
+  // 只有合并的选项具有_base属性
   if (!child._base) {
     if (child.extends) {
       parent = mergeOptions(parent, child.extends, vm)
@@ -419,15 +442,20 @@ export function mergeOptions (
 
   const options = {}
   let key
+  // 实现一个并集关系，parent全部合并，child只合并parent中没有的
+  // 重复的有一个合并策略函数进行了处理
+  // 把parent全部合并过来
   for (key in parent) {
     mergeField(key)
   }
+  // 把parent中没有的child合并过来
   for (key in child) {
     if (!hasOwn(parent, key)) {
       mergeField(key)
     }
   }
   function mergeField (key) {
+    // 优先使用全局的合并策略函数
     const strat = strats[key] || defaultStrat
     options[key] = strat(parent[key], child[key], vm, key)
   }
@@ -451,11 +479,16 @@ export function resolveAsset (
   }
   const assets = options[type]
   // check local registration variations first
+  // hasOwn是Object.prototype.hasOwnProperty的引用，先检测当前对象自己的属性
+  // 首先检测本地注册的资源
   if (hasOwn(assets, id)) return assets[id]
+  // 未找到资源，则尝试转换id，比如my-custom-component  -->  myCustomComponent
   const camelizedId = camelize(id)
   if (hasOwn(assets, camelizedId)) return assets[camelizedId]
+  // 还未找到，则尝试转换id，app  ->  App
   const PascalCaseId = capitalize(camelizedId)
   if (hasOwn(assets, PascalCaseId)) return assets[PascalCaseId]
+  // 都没找到，则查找原型链上的资源
   // fallback to prototype chain
   const res = assets[id] || assets[camelizedId] || assets[PascalCaseId]
   if (process.env.NODE_ENV !== 'production' && warnMissing && !res) {

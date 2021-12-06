@@ -23,6 +23,8 @@ let uid = 0
  * and fires callback when the expression value changes.
  * This is used for both the $watch() api and directives.
  */
+// watcher解析表达式、收集依赖项并在表达式值更改时触发回调。
+// 这用于$watch() api和指令。
 export default class Watcher {
   vm: Component;
   expression: string;
@@ -49,12 +51,14 @@ export default class Watcher {
     options?: ?Object,
     isRenderWatcher?: boolean
   ) {
+    // 相互引用，关联，vm._watcher引用watcher, this.vm引用当前组件实例
     this.vm = vm
     if (isRenderWatcher) {
       vm._watcher = this
     }
     vm._watchers.push(this)
     // options
+    // watcher还可以配置deep、user、lazy、sync、before等配置项
     if (options) {
       this.deep = !!options.deep
       this.user = !!options.user
@@ -97,6 +101,7 @@ export default class Watcher {
 
   /**
    * Evaluate the getter, and re-collect dependencies.
+   * 评估getter，并重新收集依赖项
    */
   get () {
     pushTarget(this)

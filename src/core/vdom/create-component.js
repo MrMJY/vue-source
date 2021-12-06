@@ -21,7 +21,7 @@ import {
 
 import {
   callHook,
-  activeInstance,
+  activeInstance, // 一个全局变量，引用激活的组件实例
   updateChildComponent,
   activateChildComponent,
   deactivateChildComponent
@@ -33,7 +33,10 @@ import {
 } from 'weex/runtime/recycle-list/render-component-template'
 
 // inline hooks to be invoked on component VNodes during patch
+// 组件 vnode patch 过程中的一些钩子函数
 const componentVNodeHooks = {
+  // 初始化钩子，new Sub()
+  // 初始化 keep-alive 的组件 和 普通组件
   init (vnode: VNodeWithData, hydrating: boolean): ?boolean {
     if (
       vnode.componentInstance &&
@@ -44,10 +47,12 @@ const componentVNodeHooks = {
       const mountedNode: any = vnode // work around flow
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
+      // 调用Sub，创建组件实例
       const child = vnode.componentInstance = createComponentInstanceForVnode(
         vnode,
         activeInstance
       )
+      // 调用$mount渲染，实际调用的是 mountComponent
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
   },
@@ -98,6 +103,7 @@ const componentVNodeHooks = {
 
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
+// 根据组件对象，创建vnode
 export function createComponent (
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
@@ -108,18 +114,19 @@ export function createComponent (
   if (isUndef(Ctor)) {
     return
   }
-
-  // baseCtor === Vue
+  // baseCtor === Vue，context.$options._base对Vue构造函数的引用
   const baseCtor = context.$options._base
 
   // plain options object: turn it into a constructor
   // 普通配置对象转换为一个继承自 Vue 的子构造器
+  // 如果是异步组件则不满足条件，是一个函数对象 () => import('./A.vue')
   if (isObject(Ctor)) {
     Ctor = baseCtor.extend(Ctor)
   }
 
   // if at this stage it's not a constructor or an async component factory,
   // reject.
+  // 判断一下Ctor，不管是对象还是异步组件，最终都是转换为函数了，如果不是函数则是错误的，抛出错误
   if (typeof Ctor !== 'function') {
     if (process.env.NODE_ENV !== 'production') {
       warn(`Invalid Component definition: ${String(Ctor)}`, context)
@@ -127,7 +134,7 @@ export function createComponent (
     return
   }
 
-  // async component
+  // async component 异步组件
   let asyncFactory
   if (isUndef(Ctor.cid)) {
     asyncFactory = Ctor
@@ -150,14 +157,16 @@ export function createComponent (
 
   // resolve constructor options in case global mixins are applied after
   // component constructor creation
+  // 在组件构造函数创建后应用全局 mixins 解析构造函数选项
   resolveConstructorOptions(Ctor)
 
   // transform component v-model data into props & events
+  // 转换组件的自定义 v-model
   if (isDef(data.model)) {
     transformModel(Ctor.options, data)
   }
 
-  // extract props
+  // extract props 从data中提取props
   const propsData = extractPropsFromVNodeData(data, Ctor, tag)
 
   // functional component
@@ -208,6 +217,7 @@ export function createComponent (
 }
 
 // 根据 vnode 创建组件实例
+// Sub = Vue.extend(Ctor)，调用 Sub 组件构造器，创建组件实例
 export function createComponentInstanceForVnode (
   vnode: any, // we know it's MountedComponentVNode but flow doesn't
   parent: any, // activeInstance in lifecycle state
@@ -223,6 +233,8 @@ export function createComponentInstanceForVnode (
     options.render = inlineTemplate.render
     options.staticRenderFns = inlineTemplate.staticRenderFns
   }
+  // vnode.componentOptions 是在 new Node()时设置的
+  // 此处的 Ctor 就是基于 Vue 的子构造器 Sub，继续调用 this._init(options)
   return new vnode.componentOptions.Ctor(options)
 }
 
@@ -251,6 +263,16 @@ function mergeHook (f1: any, f2: any): Function {
 
 // transform component v-model info (value and callback) into
 // prop and event handler respectively.
+/**
+ * props: {
+ *  checked: Boolean
+ * },
+ * model: {
+ *  prop: 'checked',
+ *  event: 'change'
+ * }
+ */
+// 将组件v-model信息(值和回调)分别转换为prop和事件处理程序
 function transformModel (options, data: any) {
   const prop = (options.model && options.model.prop) || 'value'
   const event = (options.model && options.model.event) || 'input'

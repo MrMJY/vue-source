@@ -40,6 +40,7 @@ export function initLifecycle (vm: Component) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
     }
+    // 子组件初始化时，调用会把当前子组件实例push到父组件的$children中
     parent.$children.push(vm)
   }
 
@@ -59,7 +60,9 @@ export function initLifecycle (vm: Component) {
 
 // Vue.prototype._update、Vue.prototype.$forceUpdate、Vue.prototype.$destroy
 export function lifecycleMixin (Vue: Class<Component>) {
+  // 接收vnode，调用patch，更新DOM
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
+    debugger
     const vm: Component = this
     // 暂存 vm.$el、vm._vnode、vm
     const prevEl = vm.$el
@@ -149,12 +152,15 @@ export function lifecycleMixin (Vue: Class<Component>) {
 // 通过 watcher 监视数据，触发 updateFunction
 // 实现首次渲染
 // 触发 mounted 钩子
+// 组件mounted
 export function mountComponent (
   vm: Component,
   el: ?Element,
   hydrating?: boolean
 ): Component {
+  // 组件实例el为undefined
   vm.$el = el
+  // 用户未使用自己写的render函数，则使用内部的
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode
     if (process.env.NODE_ENV !== 'production') {
@@ -177,6 +183,7 @@ export function mountComponent (
   }
   callHook(vm, 'beforeMount')
 
+  // 是一个用于更新DOM结构的回调函数，在数据被改变时触发
   let updateComponent
   /* istanbul ignore if */
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
@@ -197,7 +204,7 @@ export function mountComponent (
       measure(`vue ${name} patch`, startTag, endTag)
     }
   } else {
-    // vm._render()作用是通过 render 函数创建 vnode
+    // vm._render()作用是通过 render(createElement) 函数创建 vnode
     // vm._update()作用是通过 vnode 创建真实的 dom
     // updateComponent 函数实现了根据 vnode 操作 dom 
     updateComponent = () => {
@@ -349,6 +356,8 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
   }
 }
 
+// 调用钩子函数，并向上层组件触发'hook:xxx'事件
+// 父组件可以通过@hook:created="childCreated"监听到子组件的生命周期函数
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()

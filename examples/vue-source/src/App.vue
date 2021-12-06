@@ -14,7 +14,9 @@ export default {
     ThemePick: () => import('./components/ThemePick')
   },
   data() {
-    return {}
+    return {
+      a: 1
+    }
   }
 }
 </script>

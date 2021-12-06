@@ -18,6 +18,7 @@ export function initExtend (Vue: GlobalAPI) {
    */
   Vue.extend = function (extendOptions: Object): Function {
     extendOptions = extendOptions || {}
+    // 父构造器 this -> Vue构造函数
     const Super = this
     const SuperId = Super.cid
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {})
@@ -45,6 +46,7 @@ export function initExtend (Vue: GlobalAPI) {
       Super.options,
       extendOptions
     )
+    // 引用父构造器
     Sub['super'] = Super
 
     // For props and computed properties, we define the proxy getters on
@@ -60,6 +62,7 @@ export function initExtend (Vue: GlobalAPI) {
     }
 
     // allow further extension/mixin/plugin usage
+    // 扩展子构造器的静态方法，extend、mixin、use
     Sub.extend = Super.extend
     Sub.mixin = Super.mixin
     Sub.use = Super.use

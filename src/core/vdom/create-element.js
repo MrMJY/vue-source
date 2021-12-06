@@ -28,7 +28,7 @@ const ALWAYS_NORMALIZE = 2
 // 对传入的参数进行容错处理
 export function createElement (
   context: Component,
-  tag: any,
+  tag: any, // 普通string标签 || 组件对象 
   data: any,
   children: any,
   normalizationType: any,
@@ -103,7 +103,7 @@ export function _createElement (
     children = simpleNormalizeChildren(children)
   }
   let vnode, ns
-  // tag 是字符串 标签
+  // tag 是字符串 标签|组件名称
   if (typeof tag === 'string') {
     let Ctor
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag)
@@ -121,6 +121,8 @@ export function _createElement (
         config.parsePlatformTagName(tag), data, children,
         undefined, undefined, context
       )
+    // 不是原生标签，尝试以组件方式创建vnode
+    // resolveAsset则是通过名称试图找到组件
     } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
       // component
       vnode = createComponent(Ctor, data, context, children, tag)
@@ -135,6 +137,7 @@ export function _createElement (
     }
   } else {
     // direct component options / constructor
+    // 组件，直接调用createComponent方法创建vnode
     vnode = createComponent(tag, data, context, children)
   }
   if (Array.isArray(vnode)) {

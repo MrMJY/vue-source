@@ -3,6 +3,13 @@ const path = require("path")
 
 module.exports = {
   lintOnSave: false,
+  css: {
+    loaderOptions: {
+      scss: {
+        implementation: require('dart-sass')
+      }
+    }
+  },
   chainWebpack(config) {
     // 通用做法，删除预加载插件
     config.plugins.delete('preload')

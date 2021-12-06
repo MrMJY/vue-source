@@ -14,6 +14,7 @@ let uid = 0
 
 // Vue.prototype._init
 export function initMixin (Vue: Class<Component>) {
+  // 初始化new Vue() / 初始化组件，继承自Vue的子构造器
   Vue.prototype._init = function (options?: Object) {
     const vm: Component = this
     // a uid
@@ -29,12 +30,13 @@ export function initMixin (Vue: Class<Component>) {
 
     // a flag to avoid this being observed
     vm._isVue = true
-    // merge options
-    // 创建组件实例时，_isComponent = true
+    // merge options 合并配置项
+    // 组件实例时，_isComponent = true
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
+      // 优化内部组件实例化，因为组件选项合并非常慢，而且没有任何内部组件选项的需要特殊处理
       initInternalComponent(vm, options)
     } else {
       // 构造函数上的一些 options, 用户传入的 options 合并到 vm.$options 上
@@ -79,12 +81,15 @@ export function initMixin (Vue: Class<Component>) {
       measure(`vue ${vm._name} init`, startTag, endTag)
     }
     // 开始渲染
+    // 如果是组件，$options.el 没有值，mount 操作交还给组件
     if (vm.$options.el) {
       vm.$mount(vm.$options.el) // 渲染
     }
   }
 }
 // 初始化组件
+// 为组件实例添加$options，并且继承子构造器上的静态options、_renderChildren
+// 为vm.$options添加parent、_parentVnode、propsData、_parentListeners、_componentTag等
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
@@ -104,8 +109,9 @@ export function initInternalComponent (vm: Component, options: InternalComponent
   }
 }
 
+// 获取构造器上的options，必要条件下更新options
 export function resolveConstructorOptions (Ctor: Class<Component>) {
-  // Ctor 构造器（构造函数- Vue ）
+  // Ctor 构造器（构造函数- Vue、Sub ）
   let options = Ctor.options
   // 如果是组件，那么构建组件的构造器 Sub 内会有 super 属性，指向 Vue
   if (Ctor.super) {

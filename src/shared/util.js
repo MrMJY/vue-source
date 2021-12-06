@@ -160,6 +160,7 @@ export function cached<F: Function> (fn: F): F {
 
 /**
  * Camelize a hyphen-delimited string.
+ * 短横符 eg: prop-name -> propName
  */
 const camelizeRE = /-(\w)/g
 export const camelize = cached((str: string): string => {
@@ -168,6 +169,7 @@ export const camelize = cached((str: string): string => {
 
 /**
  * Capitalize a string.
+ * 首字母大写
  */
 export const capitalize = cached((str: string): string => {
   return str.charAt(0).toUpperCase() + str.slice(1)
